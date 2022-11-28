@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<uranium:UraniumContentPage
+    x:Class="WeatherApp.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:attachment="clr-namespace:UraniumUI.Material.Attachments;assembly=UraniumUI.Material"
+    xmlns:converters="clr-namespace:WeatherApp.Converters"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+    xmlns:material="clr-namespace:UraniumUI.Material.Controls;assembly=UraniumUI.Material"
+    xmlns:models="clr-namespace:WeatherApp.Models"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="clr-namespace:UraniumUI.Pages;assembly=UraniumUI"
+    xmlns:viewmodels="clr-namespace:WeatherApp.ViewModels"
+    x:Name="page">
+    <uranium:UraniumContentPage.BindingContext>
+        <viewmodels:MainPageModel />
+    </uranium:UraniumContentPage.BindingContext>
+
+    <uranium:UraniumContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior Command="{Binding GetCurrentLocationCommand}" EventName="Appearing" />
+    </uranium:UraniumContentPage.Behaviors>
+
+    <uranium:UraniumContentPage.Resources>
+        <Style TargetType="Frame">
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource OnSurface}}" />
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Image">
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </uranium:UraniumContentPage.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+
+        </Grid.RowDefinitions>
+
+        <Frame Grid.Row="0" CornerRadius="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <ActivityIndicator
+                    Grid.Column="0"
+                    HeightRequest="25"
+                    IsRunning="{Binding IsDataLoading}"
+                    IsVisible="{Binding IsDataLoading}" />
+
+                <ImageButton
+                    Grid.Column="0"
+                    Command="{Binding GetCurrentLocationCommand}"
+                    HeightRequest="25"
+                    IsVisible="{Binding IsDataLoading, Converter={toolkit:InvertedBoolConverter}}">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.RotateRight}" />
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <Label
+                    Grid.Column="1"
+                    FontAutoScalingEnabled="True"
+                    FontSize="Title"
+                    HorizontalOptions="CenterAndExpand"
+                    Text="{Binding LocationName}"
+                    TextTransform="Uppercase"
+                    VerticalOptions="Center" />
+
+                <ImageButton
+                    Grid.Column="2"
+                    Command="{Binding CancelRequestCommand}"
+                    HeightRequest="25"
+                    IsVisible="{Binding IsDataLoading}">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Xmark}" />
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton
+                    Grid.Column="3"
+                    Command="{Binding NavigateToSearchPageCommand}"
+                    HeightRequest="25"
+                    IsEnabled="{Binding IsDataLoading, Converter={toolkit:InvertedBoolConverter}}">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.City}" />
+                    </ImageButton.Source>
+                </ImageButton>
+            </Grid>
+        </Frame>
+
+        <Frame
+            Grid.Row="1"
+            Margin="0,5"
+            CornerRadius="16"
+            IsVisible="{Binding IsDataLoading, Converter={toolkit:InvertedBoolConverter}}">
+            <VerticalStackLayout x:Name="v">
+                <VerticalStackLayout.Resources>
+                    <Style TargetType="Image">
+                        <Setter Property="HeightRequest" Value="40" />
+                    </Style>
+                    <Style TargetType="Label">
+                        <Setter Property="HorizontalOptions" Value="CenterAndExpand" />
+                    </Style>
+                </VerticalStackLayout.Resources>
+
+                <Image IsVisible="{Binding TodayForecast.Daily.RainSum[0], Converter={converters:RainVisibilityConverter}}">
+                    <Image.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CloudRain}" />
+                    </Image.Source>
+                </Image>
+                <Image IsVisible="{Binding TodayForecast.Daily.RainSum[0], Converter={converters:SunVisibilityConverter}}">
+                    <Image.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Sun}" />
+                    </Image.Source>
+                </Image>
+
+                <Label
+                    FontSize="22"
+                    IsVisible="{Binding TodayForecast.Daily.RainSum[0], Converter={converters:RainVisibilityConverter}}"
+                    Text="Rain" />
+                <Label
+                    FontSize="22"
+                    IsVisible="{Binding TodayForecast.Daily.RainSum[0], Converter={converters:SunVisibilityConverter}}"
+                    Text="Sunny" />
+
+
+
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="30"
+                    Text="{Binding TodayForecast.CurrentWeather.Temperature, Converter={converters:RoundNumberConverter}, StringFormat='{0} °C'}" />
+                <Label Margin="0,0,0,0" Text="{Binding TodayForecast.CurrentWeather.Weathercode, Converter={converters:WeatherCodeToNameConverter}}" />
+                <Label Text="{Binding TodayForecast.CurrentWeather.Time, Converter={converters:StringToDateToNameConverter}}" />
+            </VerticalStackLayout>
+        </Frame>
+
+        <BoxView
+            Grid.Row="2"
+            Margin="2"
+            StyleClass="Divider" />
+
+
+        <VerticalStackLayout Grid.Row="3" IsVisible="{Binding IsDataLoading, Converter={toolkit:InvertedBoolConverter}}">
+            <Label
+                Margin="5,5,0,0"
+                FontAttributes="Bold"
+                FontSize="Subtitle"
+                HorizontalOptions="Start"
+                Text="7 Days Forecast"
+                VerticalOptions="Center" />
+            <BoxView Margin="5" StyleClass="Divider" />
+
+        </VerticalStackLayout>
+
+        <CollectionView
+            Grid.Row="4"
+            Margin="0,0,0,0"
+            BackgroundColor="Transparent"
+            ItemsSource="{Binding DaysForecasts}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:DayForecast">
+                    <Frame
+                        Margin="0,5"
+                        CornerRadius="16"
+                        HeightRequest="80"
+                        StyleClass="Elevation5">
+                        <Grid BackgroundColor="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Label
+                                Grid.Column="0"
+                                FontSize="Medium"
+                                HorizontalOptions="Start"
+                                Text="{Binding DateTime, Converter={converters:DateTimeToNameConverter}}" />
+                            <Label Grid.Column="1" Text="{Binding TemperatureMin, Converter={converters:RoundNumberConverter}, StringFormat='{0} °C'}" />
+                            <Label Grid.Column="2" Text="{Binding TemperatureMax, Converter={converters:RoundNumberConverter}, StringFormat='{0} °C'}" />
+                            <Image Grid.Column="3" IsVisible="{Binding Rain, Converter={converters:RainVisibilityConverter}}">
+                                <Image.Source>
+                                    <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CloudRain}" />
+                                </Image.Source>
+                            </Image>
+                            <Image Grid.Column="3" IsVisible="{Binding Rain, Converter={converters:SunVisibilityConverter}}">
+                                <Image.Source>
+                                    <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Sun}" />
+                                </Image.Source>
+                            </Image>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+</uranium:UraniumContentPage>
+

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<uranium:UraniumContentPage
+    x:Class="WeatherApp.Views.SearchPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:WeatherApp.Views"
+    xmlns:models="clr-namespace:WeatherApp.Models"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="clr-namespace:UraniumUI.Pages;assembly=UraniumUI"
+    xmlns:viewmodels="clr-namespace:WeatherApp.ViewModels"
+    x:DataType="viewmodels:SearchPageModel">
+    <uranium:UraniumContentPage.BindingContext>
+        <viewmodels:SearchPageModel />
+    </uranium:UraniumContentPage.BindingContext>
+
+    <StackLayout>
+        <SearchBar
+            x:Name="citySearch"
+            MaxLength="4"
+            SearchCommand="{Binding SearchCitieCommand}"
+            SearchCommandParameter="{Binding Text, Source={x:Reference citySearch}}" />
+        <CollectionView EmptyView="No cities found" ItemsSource="{Binding CitiesResults}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Result">
+                    <HorizontalStackLayout HeightRequest="50">
+                        <Image Margin="5,5">
+                            <Image.Source>
+                                <UriImageSource Uri="{Binding ImageUri}" />
+                            </Image.Source>
+                        </Image>
+                        <VerticalStackLayout Margin="5,0">
+                            <Label Text="{Binding Name}" />
+                            <Label Text="{Binding Admin1}" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+</uranium:UraniumContentPage>
