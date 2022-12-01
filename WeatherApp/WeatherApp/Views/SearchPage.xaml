@@ -13,22 +13,37 @@
         <viewmodels:SearchPageModel />
     </uranium:UraniumContentPage.BindingContext>
 
-    <StackLayout>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
+
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <SearchBar
+            Grid.Row="0"
+            Margin="0,0,0,0"
+            Placeholder="Search for your city"
+            BackgroundColor="#14213d"
             x:Name="citySearch"
-            MaxLength="4"
-            SearchCommand="{Binding SearchCitieCommand}"
+            SearchCommand="{Binding SearchCitiesCommand}"
             SearchCommandParameter="{Binding Text, Source={x:Reference citySearch}}" />
-        <CollectionView EmptyView="No cities found" ItemsSource="{Binding CitiesResults}">
+
+        <Label Grid.Row="1"  Text="{Binding CitiesResults.Count, StringFormat='Founded {0} results'}" VerticalOptions="Start"></Label>
+        
+        <CollectionView Grid.Row="2" EmptyView="No cities found" SelectionMode="Single" ItemsSource="{Binding CitiesResults}" MinimumHeightRequest="500"  Margin="10">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Result">
-                    <HorizontalStackLayout HeightRequest="50">
-                        <Image Margin="5,5">
-                            <Image.Source>
-                                <UriImageSource Uri="{Binding ImageUri}" />
-                            </Image.Source>
-                        </Image>
-                        <VerticalStackLayout Margin="5,0">
+                    <HorizontalStackLayout HeightRequest="60">
+                        <AbsoluteLayout>
+                            <Image Margin="5,5">
+                                <Image.Source>
+                                    <UriImageSource Uri="{Binding ImageUri}" />
+                                </Image.Source>
+                            </Image>
+                            <ActivityIndicator AbsoluteLayout.LayoutFlags="PositionProportional" AbsoluteLayout.LayoutBounds="0,0,0,0"/>
+                        </AbsoluteLayout>
+                        <VerticalStackLayout Margin="5,5">
                             <Label Text="{Binding Name}" />
                             <Label Text="{Binding Admin1}" />
                         </VerticalStackLayout>
@@ -36,5 +51,5 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </StackLayout>
+    </Grid>
 </uranium:UraniumContentPage>

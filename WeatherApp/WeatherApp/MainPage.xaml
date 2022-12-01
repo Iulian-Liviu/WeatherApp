@@ -18,7 +18,7 @@
     </uranium:UraniumContentPage.BindingContext>
 
     <uranium:UraniumContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior Command="{Binding GetCurrentLocationCommand}" EventName="Appearing" />
+        <toolkit:EventToCommandBehavior Command="{Binding GetDataOnLoadedPageCommand}" EventName="Appearing" />
     </uranium:UraniumContentPage.Behaviors>
 
     <uranium:UraniumContentPage.Resources>
@@ -62,7 +62,7 @@
 
                 <ImageButton
                     Grid.Column="0"
-                    Command="{Binding GetCurrentLocationCommand}"
+                    Command="{Binding RefreshChangeCommand}"
                     HeightRequest="25"
                     IsVisible="{Binding IsDataLoading, Converter={toolkit:InvertedBoolConverter}}">
                     <ImageButton.Source>

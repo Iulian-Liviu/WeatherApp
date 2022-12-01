@@ -13,9 +13,11 @@ namespace WeatherApp.ViewModels
         private CancellationTokenSource _cancelTokenSource;
 
         private bool _isCheckingLocation;
+        private bool _alreadyPageLoaded;
 
         public MainPageModel()
         {
+            _alreadyPageLoaded = false;
             IsDataLoading = false;
             DaysForecasts = new ObservableCollection<DayForecast>();
         }
@@ -36,7 +38,22 @@ namespace WeatherApp.ViewModels
         private PlaceLocationModel placeLocation;
 
         [RelayCommand]
-        public async Task GetCurrentLocation()
+        public async Task GetDataOnLoadedPage()
+        {
+            if (_alreadyPageLoaded == false)
+            {
+                await GetDataAsync();
+                _alreadyPageLoaded = true;
+            }
+        }
+
+        [RelayCommand]
+        public async Task RefreshChange()
+        {
+            await GetDataAsync();
+        }
+
+        private async Task GetDataAsync()
         {
             try
             {
@@ -103,6 +120,7 @@ namespace WeatherApp.ViewModels
 
                                 _isCheckingLocation = false;
                                 IsDataLoading = false;
+                                _alreadyPageLoaded = true;
                             }
                             else
                             {

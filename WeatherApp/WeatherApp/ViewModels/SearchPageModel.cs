@@ -14,53 +14,86 @@ namespace WeatherApp.ViewModels
     [ObservableObject]
     public partial class SearchPageModel
     {
-        readonly CancellationTokenSource _cancellationTokenSource;
+        private Task queryTask;
+        private IDispatcher uiThread;
+        private bool _isDataLoading;
 
         public SearchPageModel()
         {
-            _cancellationTokenSource = new CancellationTokenSource();
             CitiesResults = new ObservableCollection<Result>();
+            _isDataLoading = false;
+            Shell.Current.NavigatedTo += Current_NavigatedTo;
+        }
+
+        private void Current_NavigatedTo(object sender, NavigatedToEventArgs e)
+        {
+            if (e.GetType() == Type.GetType(nameof(MainPage)))
+            {
+                queryTask.Dispose();
+                CitiesResults.Clear();
+            }
         }
 
         [ObservableProperty]
         ObservableCollection<Result> citiesResults;
 
         [RelayCommand]
-        public async Task SearchCitie(string queryText)
+        public void SearchCities(string queryText)
         {
-            if (queryText.Length >= 2)
+            if (queryText.Length >= 3 && _isDataLoading == false)
             {
-                CancellationToken cancellationToken = _cancellationTokenSource.Token;
                 try
                 {
-                    while (!cancellationToken.IsCancellationRequested && queryText.Length > 3)
+                    _isDataLoading = true;
+                    uiThread = Dispatcher.GetForCurrentThread();
+
+                    if (uiThread != null)
                     {
-                        using HttpClient client = new();
-                        HttpResponseMessage response = await client.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={queryText}&count=5", cancellationToken);
-                        if (response.IsSuccessStatusCode)
+                        if (CitiesResults.Count > 0)
                         {
-                            string jsonBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
-                            var data = SearchedCities.FromJson(jsonBody);
-
-                            if (data.Results != null)
-                            {
-                                foreach (var item in data.Results)
-                                {
-                                    item.ImageUri = $"https://assets.open-meteo.com/images/country-flags/{item.CountryCode.ToLower()}.svg";
-
-                                    CitiesResults.Add(item);
-                                }
-                                _cancellationTokenSource.Cancel();
-                            }
-                            else
-                            {
-                                _cancellationTokenSource.Cancel();
-                                CitiesResults = new();
-                                AlertUser($"{data.Results.Count}");
-                            }
+                            CitiesResults.Clear();
                         }
+
+                        queryTask = new Task(new Action(async () =>
+                        {
+                            using HttpClient client = new();
+                            HttpResponseMessage response = await client.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={queryText}&count=10");
+                            if (response.IsSuccessStatusCode)
+                            {
+                                string jsonBody = await response.Content.ReadAsStringAsync();
+
+                                var data = SearchedCities.FromJson(jsonBody);
+
+                                if (data.Results != null)
+                                {
+                                    foreach (var item in data.Results)
+                                    {
+
+                                        uiThread.Dispatch(() => {
+                                            item.ImageUri = $"https://flagsapi.com/{item.CountryCode}/flat/64.png";
+
+                                            CitiesResults.Add(item);
+                                        });
+
+                                    }
+                                    _isDataLoading = false;
+                                }
+                                else
+                                {
+                                    CitiesResults = new();
+                                    AlertUser($"{data.Results.Count}");
+                                }
+                            }
+                        }));
+                        queryTask.Start();
                     }
+                    else
+                    {
+                        AlertUser("UI Thread is null");
+                    }
+
+
                 }
                 catch (Exception e)
                 {
@@ -74,15 +107,6 @@ namespace WeatherApp.ViewModels
         {
             await Shell.Current.DisplayAlert("Info", mess, "OK");
         }
-
-        [RelayCommand]
-        public void CancelRequest()
-        {
-            if (_cancellationTokenSource != null && _cancellationTokenSource.IsCancellationRequested == false)
-            {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
-            }
-        }
+       
     }
 }
